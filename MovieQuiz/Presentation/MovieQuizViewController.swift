@@ -24,7 +24,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     // MARK: - QuestionFactoryDelegate
-
+    
     func didReceiveNextQuestion(question: QuizQuestion?) {
         guard let question = question else {
             return
@@ -92,29 +92,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
-            showAlert(quiz: QuizResultsViewModel(title: "Раунд окончен!", text: "Ваш результат: \(correctAnswers)/10", buttonText: "Сыграть еще раз"))
+            showAlert()
+            chooseIsEnableButtons(true)
         } else {
             chooseIsEnableButtons(true)
             currentQuestionIndex += 1
             questionFactory?.requestNextQuestion()
         }
-    }
-    private func showAlert(quiz result: QuizResultsViewModel) {
-        let alert = UIAlertController(
-            title: result.title,
-            message: result.text,
-            preferredStyle: .alert)
-        
-        let action = UIAlertAction(title: result.buttonText, style: .default) {[weak self] _ in
-            guard let self = self else {return}
-            self.currentQuestionIndex = 0
-            self.correctAnswers = 0
-        
-            questionFactory?.requestNextQuestion() 
-        }
-        
-        alert.addAction(action)
-        self.present(alert, animated: true, completion: nil)
     }
     
     private func settingUI() {
@@ -127,6 +111,23 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         imageView.layer.cornerRadius = 20
         yesButton.layer.cornerRadius = 15
         noButton.layer.cornerRadius = 15
+    }
+    
+    private func showAlert() {
+        let alert = AlertModel(
+            title: "Раунд окончен!",
+            message: "Ваш результат: \(correctAnswers)/10",
+            buttonText: "Сыграть еще раз",
+            completion: {[weak self] in
+                guard let self = self else {return}
+                self.currentQuestionIndex = 0
+                self.correctAnswers = 0
+                
+                questionFactory?.requestNextQuestion()
+            }
+        )
+        let alerShow = AlertPresenter()
+        alerShow.showAlert(model: alert, from: self)
     }
     
     private func chooseIsEnableButtons(_ enabled: Bool){
