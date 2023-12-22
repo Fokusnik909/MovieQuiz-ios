@@ -13,12 +13,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private let questionsAmount = 10
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
+    private var statisticService: StatisticService?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         settingUI()
         questionFactory = QuestionFactory(delegate: self)
+        statisticService = StatisticServiceImplementation()
         
         questionFactory?.requestNextQuestion()
     }
@@ -114,20 +116,45 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     private func showAlert() {
+        statisticService?.store(correct: correctAnswers, total: questionsAmount)
+        
+        guard (statisticService?.bestGame) != nil else {
+            assertionFailure("error message")
+            return
+        }
+        
         let alert = AlertModel(
             title: "Раунд окончен!",
-            message: "Ваш результат: \(correctAnswers)/10",
+            message: makeResultMessage(),
             buttonText: "Сыграть еще раз",
             completion: {[weak self] in
                 guard let self = self else {return}
                 self.currentQuestionIndex = 0
                 self.correctAnswers = 0
-                
                 questionFactory?.requestNextQuestion()
             }
         )
         let alerShow = AlertPresenter()
         alerShow.showAlert(model: alert, from: self)
+    }
+    
+    private func makeResultMessage() -> String {
+        guard let statisticService = statisticService, let bestGame = statisticService.bestGame else {
+            assertionFailure("error message")
+            return ""
+        }
+        
+        let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
+        let totalPlaysCountLine = "Количество сыгранных квозов: \(statisticService.gamesCount)"
+        let currentGameResuletLine = "Ваш результат: \(correctAnswers)\\\(questionsAmount)"
+        let bestGameInfoLine = "Рекорд: \(bestGame.correct)\\\(questionsAmount)"
+        + " (\(bestGame.date.dateTimeString))"
+        let averageAccuracyLine = "Средняя точность: \(accuracy)%"
+        
+        
+        let resultMessage = [currentGameResuletLine, totalPlaysCountLine, bestGameInfoLine, averageAccuracyLine].joined(separator: "\n")
+        
+        return resultMessage
     }
     
     private func chooseIsEnableButtons(_ enabled: Bool){
