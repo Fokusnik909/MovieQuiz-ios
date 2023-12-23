@@ -37,7 +37,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
         }
-        
     }
     
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -147,10 +146,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
         let totalPlaysCountLine = "Количество сыгранных квозов: \(statisticService.gamesCount)"
         let currentGameResuletLine = "Ваш результат: \(correctAnswers)\\\(questionsAmount)"
-        let bestGameInfoLine = "Рекорд: \(bestGame.correct)\\\(questionsAmount)"
-        + " (\(bestGame.date.dateTimeString))"
+        let bestGameInfoLine = "Рекорд: \(bestGame.correct)\\\(questionsAmount) (\(bestGame.date.dateTimeString))"
         let averageAccuracyLine = "Средняя точность: \(accuracy)%"
-        
         
         let resultMessage = [currentGameResuletLine, totalPlaysCountLine, bestGameInfoLine, averageAccuracyLine].joined(separator: "\n")
         

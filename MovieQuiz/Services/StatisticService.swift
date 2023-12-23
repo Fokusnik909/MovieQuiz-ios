@@ -28,11 +28,11 @@ final class StatisticServiceImplementation {
         encoder: JSONEncoder = JSONEncoder(),
         dateProvider:  @escaping ()-> Date = {Date()}
     ) {
-            self.userDefaults = userDefaults
-            self.encoder = encoder
-            self.decoder = decoder
-            self.dateProvider = dateProvider
-        }
+        self.userDefaults = userDefaults
+        self.encoder = encoder
+        self.decoder = decoder
+        self.dateProvider = dateProvider
+    }
 }
 
 extension StatisticServiceImplementation: StatisticService {
@@ -76,8 +76,7 @@ extension StatisticServiceImplementation: StatisticService {
         get {
             guard let data = userDefaults.data(forKey: Keys.bestGame.rawValue),
                   let bestGame = try? decoder.decode(GameRecord.self, from: data) else {
-                return nil
-//                return .init(correct: 0, total: 0, date: Date())
+                return .init(correct: 0, total: 0, date: Date())
             }
             return bestGame
         }
@@ -90,22 +89,13 @@ extension StatisticServiceImplementation: StatisticService {
         }
     }
     
-    func store(correct count: Int, total amount: Int) {
-        self.correct += count
-        self.total += amount
-        self.gamesCount += 1
+    func store(correct: Int, total: Int) {
+        self.correct += correct
+        self.total += total
+        gamesCount += 1
         
         let date = dateProvider()
         let currentBestGame = GameRecord(correct: correct, total: total, date: date)
-        
-//        if let previousBestGame = bestGame {
-//            if currentBestGame > previousBestGame {
-//                bestGame = currentBestGame
-//            }
-//        } else {
-//            bestGame = currentBestGame
-//        }
-           
         
         if let previousBestGame = bestGame {
             if currentBestGame.isBetterThan(previousBestGame) {
@@ -114,8 +104,6 @@ extension StatisticServiceImplementation: StatisticService {
         } else {
             bestGame = currentBestGame
         }
-       
-        
     }
     
     
