@@ -142,15 +142,13 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             assertionFailure("error message")
             return ""
         }
-        
         let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
-        let totalPlaysCountLine = "Количество сыгранных квозов: \(statisticService.gamesCount)"
-        let currentGameResuletLine = "Ваш результат: \(correctAnswers)\\\(questionsAmount)"
-        let bestGameInfoLine = "Рекорд: \(bestGame.correct)\\\(questionsAmount) (\(bestGame.date.dateTimeString))"
-        let averageAccuracyLine = "Средняя точность: \(accuracy)%"
-        
-        let resultMessage = [currentGameResuletLine, totalPlaysCountLine, bestGameInfoLine, averageAccuracyLine].joined(separator: "\n")
-        
+        let resultMessage = """
+            Количество сыгранных квозов: \(statisticService.gamesCount)
+            Ваш результат: \(correctAnswers)\\\(questionsAmount)
+            Рекорд: \(bestGame.correct)\\\(questionsAmount) (\(bestGame.date.dateTimeString))
+            Средняя точность: \(accuracy)%
+        """
         return resultMessage
     }
     
