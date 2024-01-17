@@ -191,3 +191,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
 }
+
+extension MovieQuizViewController {
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+            return .lightContent
+        }
+}
