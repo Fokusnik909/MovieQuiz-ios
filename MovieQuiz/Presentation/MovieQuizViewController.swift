@@ -16,6 +16,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     private var statisticService: StatisticService?
+    private let presenter = MovieQuizPresenter()
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -37,19 +38,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         }
         
         currentQuestion = question
-        let viewModel = convert(model: question)
+        let viewModel = presenter.convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.show(quiz: viewModel)
             self?.activityIndicator.stopAnimating()
         }
-    }
-    
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let question = QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)")
-        return question
     }
     
     private func show(quiz step: QuizStepViewModel) {
@@ -122,8 +115,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     private func showAlert() {
-        statisticService?.store(correct: correctAnswers, total: questionsAmount)
-        
         guard (statisticService?.bestGame) != nil else {
             assertionFailure("error message")
             return
@@ -144,18 +135,22 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     private func makeResultMessage() -> String {
-        guard let statisticService = statisticService, let bestGame = statisticService.bestGame else {
-            assertionFailure("error message")
-            return ""
+        var resultMessage = ""
+        if let statisticService = statisticService {
+            
+            let bestGame = statisticService.bestGame
+            
+            statisticService.store(correct: correctAnswers, total: questionsAmount)
+            let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
+            resultMessage = """
+                Количество сыгранных квизов: \(statisticService.gamesCount)
+                Ваш результат: \(correctAnswers)\\\(questionsAmount)
+                Рекорд: \(bestGame.correct)\\\(questionsAmount) (\(bestGame.date.dateTimeString))
+                Средняя точность: \(accuracy)%
+            """
         }
-        let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
-        let resultMessage = """
-            Количество сыгранных квизов: \(statisticService.gamesCount)
-            Ваш результат: \(correctAnswers)\\\(questionsAmount)
-            Рекорд: \(bestGame.correct)\\\(questionsAmount) (\(bestGame.date.dateTimeString))
-            Средняя точность: \(accuracy)%
-        """
         return resultMessage
+        
     }
     
     func didLoadDataFromServer() {

@@ -11,7 +11,7 @@ protocol StatisticService {
     func store(correct count: Int, total amount: Int)
     var totalAccuracy: Double { get }
     var gamesCount: Int { get }
-    var bestGame: GameRecord? { get }
+    var bestGame: GameRecord { get }
     var total: Int { get set }
     var correct: Int { get set }
 }
@@ -61,7 +61,7 @@ extension StatisticServiceImplementation: StatisticService {
         return Double(correct) / Double(total) * 100
     }
     
-    var bestGame: GameRecord? {
+    var bestGame: GameRecord {
         get {
             guard let data = UserDefaults.standard.data(forKey: Keys.bestGame.rawValue),
                   let bestGame = try? JSONDecoder().decode(GameRecord.self, from: data) else {
@@ -81,16 +81,12 @@ extension StatisticServiceImplementation: StatisticService {
     func store(correct: Int, total: Int) {
         self.correct += correct
         self.total += total
-        gamesCount += 1
+        self.gamesCount += 1
         
         let date = dateProvider()
         let currentBestGame = GameRecord(correct: correct, total: total, date: date)
         
-        if let previousBestGame = bestGame {
-            if currentBestGame.isBetterThan(previousBestGame) {
-                bestGame = currentBestGame
-            }
-        } else {
+        if currentBestGame.isBetterThan(bestGame) {
             bestGame = currentBestGame
         }
     }
