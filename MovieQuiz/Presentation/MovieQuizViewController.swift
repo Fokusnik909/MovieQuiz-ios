@@ -1,6 +1,6 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
+final class MovieQuizViewController: UIViewController {
     @IBOutlet private weak var questionTitleLabel: UILabel!
     @IBOutlet private weak var counterLabel: UILabel!
     @IBOutlet private weak var imageView: UIImageView!
@@ -10,28 +10,19 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     private let alertPresenter = AlertPresenter()
-    private var questionFactory: QuestionFactoryProtocol?
     private var statisticService: StatisticService?
-    private let presenter = MovieQuizPresenter()
+    private var presenter: MovieQuizPresenter!
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        presenter.viewController = self
         settingUI()
         activityIndicator.hidesWhenStopped = true
-        questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
+        presenter = MovieQuizPresenter(viewController: self)
         statisticService = StatisticServiceImplementation()
         
-        activityIndicator.startAnimating()
-        questionFactory?.loadData()
     }
     
-    // MARK: - QuestionFactoryDelegate
-    
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        presenter.didReceiveNextQuestion(question: question)
-    }
     
     func show(quiz step: QuizStepViewModel) {
         counterLabel.text = step.questionNumber
@@ -62,7 +53,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             guard let self = self else {return}
             self.showNextQuestionOrResults()
-            self.presenter.questionFactory = self.questionFactory
             self.imageView.layer.borderColor = UIColor.clear.cgColor
         }
     }
@@ -75,7 +65,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             chooseIsEnableButtons(true)
             presenter.switchToNextQuestion()
             activityIndicator.startAnimating()
-            questionFactory?.requestNextQuestion()
+            presenter.questionFactory?.requestNextQuestion()
         }
     }
     
@@ -92,6 +82,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         activityIndicator.color = .white
     }
     
+    func hideLoadingIndicator() {
+            activityIndicator.isHidden = true
+        }
+    
     func showAlert() {
         guard (statisticService?.bestGame) != nil else {
             assertionFailure("error message")
@@ -105,7 +99,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             completion: {[weak self] in
                 guard let self = self else {return}
                 self.presenter.resetGame()
-                questionFactory?.requestNextQuestion()
+                self.presenter.resetGame()
             }
         )
         alertPresenter.showAlert(model: alert, from: self)
@@ -130,22 +124,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         
     }
     
-    func didLoadDataFromServer() {
-        activityIndicator.stopAnimating()
-        questionFactory?.requestNextQuestion()
-    }
-    
-    func didFailToLoadData(with error: Error) {
-        showNetworkError(message: error.localizedDescription)
-    }
-
-    
     func chooseIsEnableButtons(_ enabled: Bool){
         yesButton.isEnabled = enabled
         noButton.isEnabled = enabled
     }
     
-    private func showNetworkError(message: String) {
+    func showNetworkError(message: String) {
         activityIndicator.stopAnimating()
         
         let model = AlertModel(title: "Ошибка",
@@ -154,7 +138,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             guard let self = self else { return }
             
             self.presenter.resetGame()
-            self.questionFactory?.loadData()
             activityIndicator.startAnimating()
         }
         
