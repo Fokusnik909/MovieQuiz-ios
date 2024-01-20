@@ -12,7 +12,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     private var correctAnswers = 0
     private let alertPresenter = AlertPresenter()
     private var questionFactory: QuestionFactoryProtocol?
-    private var currentQuestion: QuizQuestion?
     private var statisticService: StatisticService?
     private let presenter = MovieQuizPresenter()
     
@@ -32,19 +31,10 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     // MARK: - QuestionFactoryDelegate
     
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question = question else {
-            return
-        }
-        
-        currentQuestion = question
-        let viewModel = presenter.convert(model: question)
-        DispatchQueue.main.async { [weak self] in
-            self?.show(quiz: viewModel)
-            self?.activityIndicator.stopAnimating()
-        }
+        presenter.didReceiveNextQuestion(question: question)
     }
     
-    private func show(quiz step: QuizStepViewModel) {
+    func show(quiz step: QuizStepViewModel) {
         counterLabel.text = step.questionNumber
         imageView.image = step.image
         questionLabel.text = step.question
@@ -52,13 +42,11 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     @IBAction private func noButtonPressed(_ sender: Any) {
         chooseIsEnableButtons(false)
-        presenter.currentQuestion = currentQuestion
         presenter.yesButtonPressed()
     }
     
     @IBAction private func yesButtonPressed(_ sender: Any) {
         chooseIsEnableButtons(false)
-        presenter.currentQuestion = currentQuestion
         presenter.yesButtonPressed()
     }
     
