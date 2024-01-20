@@ -12,8 +12,8 @@ final class MovieQuizPresenter {
     private var currentQuestionIndex: Int = 0
     var currentQuestion: QuizQuestion?
     weak var viewController: MovieQuizViewController?
-    private var questionFactory: QuestionFactoryProtocol?
-    private var correctAnswers = 0
+    var questionFactory: QuestionFactoryProtocol?
+    var correctAnswers = 0
     
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         let question = QuizStepViewModel(
@@ -65,14 +65,23 @@ final class MovieQuizPresenter {
         viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
+    func didAnswer(isCorrectAnswer: Bool) -> Bool {
+        if isCorrectAnswer {
+            correctAnswers += 1
+            return true
+        }
+        return false
+    }
+    
     
     
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
     }
     
-    func resetQuestionIndex() {
+    func resetGame() {
         currentQuestionIndex = 0
+        correctAnswers = 0
     }
     
     func switchToNextQuestion() {
