@@ -12,6 +12,8 @@ final class MovieQuizPresenter {
     private var currentQuestionIndex: Int = 0
     var currentQuestion: QuizQuestion?
     weak var viewController: MovieQuizViewController?
+    private var questionFactory: QuestionFactoryProtocol?
+    private var correctAnswers = 0
     
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         let question = QuizStepViewModel(
@@ -30,7 +32,19 @@ final class MovieQuizPresenter {
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.show(quiz: viewModel)
-//            self?.activityIndicator.stopAnimating()
+            self?.viewController?.activityIndicator.stopAnimating()
+        }
+    }
+    
+    private func showNextQuestionOrResults() {
+        if isLastQuestion() {
+            viewController?.showAlert()
+            viewController?.chooseIsEnableButtons(true)
+        } else {
+            viewController?.chooseIsEnableButtons(true)
+            switchToNextQuestion()
+            viewController?.activityIndicator.startAnimating()
+            questionFactory?.requestNextQuestion()
         }
     }
     

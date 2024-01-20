@@ -7,7 +7,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet private weak var questionLabel: UILabel!
     @IBOutlet private weak var noButton: UIButton!
     @IBOutlet private weak var yesButton: UIButton!
-    @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     private var correctAnswers = 0
     private let alertPresenter = AlertPresenter()
@@ -93,7 +93,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         activityIndicator.color = .white
     }
     
-    private func showAlert() {
+    func showAlert() {
         guard (statisticService?.bestGame) != nil else {
             assertionFailure("error message")
             return
@@ -142,7 +142,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
 
     
-    private func chooseIsEnableButtons(_ enabled: Bool){
+    func chooseIsEnableButtons(_ enabled: Bool){
         yesButton.isEnabled = enabled
         noButton.isEnabled = enabled
     }
