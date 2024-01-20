@@ -10,7 +10,6 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
     private let alertPresenter = AlertPresenter()
-    private var statisticService: StatisticService?
     private var presenter: MovieQuizPresenter!
     
     // MARK: - Lifecycle
@@ -19,7 +18,6 @@ final class MovieQuizViewController: UIViewController {
         settingUI()
         activityIndicator.hidesWhenStopped = true
         presenter = MovieQuizPresenter(viewController: self)
-        statisticService = StatisticServiceImplementation()
         
     }
     
@@ -87,42 +85,24 @@ final class MovieQuizViewController: UIViewController {
         }
     
     func showAlert() {
-        guard (statisticService?.bestGame) != nil else {
-            assertionFailure("error message")
-            return
-        }
+//        guard (statisticService?.bestGame) != nil else {
+//            assertionFailure("error message")
+//            return
+//        }
+        let message = presenter.makeResultMessage()
         
         let alert = AlertModel(
             title: "Раунд окончен!",
-            message: makeResultMessage(),
+            message: message,
             buttonText: "Сыграть ещё раз",
             completion: {[weak self] in
                 guard let self = self else {return}
-                self.presenter.resetGame()
                 self.presenter.resetGame()
             }
         )
         alertPresenter.showAlert(model: alert, from: self)
     }
     
-    private func makeResultMessage() -> String {
-        var resultMessage = ""
-        if let statisticService = statisticService {
-            
-            let bestGame = statisticService.bestGame
-            
-            statisticService.store(correct: presenter.correctAnswers, total: presenter.questionsAmount)
-            let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
-            resultMessage = """
-                Количество сыгранных квизов: \(statisticService.gamesCount)
-                Ваш результат: \(presenter.correctAnswers)\\\(presenter.questionsAmount)
-                Рекорд: \(bestGame.correct)\\\(presenter.questionsAmount) (\(bestGame.date.dateTimeString))
-                Средняя точность: \(accuracy)%
-            """
-        }
-        return resultMessage
-        
-    }
     
     func chooseIsEnableButtons(_ enabled: Bool){
         yesButton.isEnabled = enabled

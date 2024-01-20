@@ -13,11 +13,14 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     var currentQuestion: QuizQuestion?
     weak var viewController: MovieQuizViewController?
     var questionFactory: QuestionFactoryProtocol?
+    private let statisticService: StatisticService!
     var correctAnswers = 0
 
     
     init(viewController: MovieQuizViewController){
         self.viewController = viewController
+        
+        statisticService = StatisticServiceImplementation()
         
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         questionFactory?.loadData()
@@ -67,6 +70,25 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             viewController?.activityIndicator.startAnimating()
             questionFactory?.requestNextQuestion()
         }
+    }
+    
+    func makeResultMessage() -> String {
+        var resultMessage = ""
+        if let statisticService = statisticService {
+            
+            let bestGame = statisticService.bestGame
+            
+            statisticService.store(correct: correctAnswers, total: questionsAmount)
+            let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
+            resultMessage = """
+                Количество сыгранных квизов: \(statisticService.gamesCount)
+                Ваш результат: \(correctAnswers)\\\(questionsAmount)
+                Рекорд: \(bestGame.correct)\\\(questionsAmount) (\(bestGame.date.dateTimeString))
+                Средняя точность: \(accuracy)%
+            """
+        }
+        return resultMessage
+        
     }
     
     func yesButtonPressed() {
