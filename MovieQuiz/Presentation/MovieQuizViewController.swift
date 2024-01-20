@@ -9,9 +9,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet private weak var yesButton: UIButton!
     @IBOutlet private weak var activityIndicator: UIActivityIndicatorView!
     
-    private var currentQuestionIndex = 0
     private var correctAnswers = 0
-    private let questionsAmount = 10
     private let alertPresenter = AlertPresenter()
     private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
@@ -90,12 +88,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     }
     
     private func showNextQuestionOrResults() {
-        if currentQuestionIndex == questionsAmount - 1 {
+        if presenter.isLastQuestion() {
             showAlert()
             chooseIsEnableButtons(true)
         } else {
             chooseIsEnableButtons(true)
-            currentQuestionIndex += 1
+            presenter.switchToNextQuestion()
             activityIndicator.startAnimating()
             questionFactory?.requestNextQuestion()
         }
@@ -126,7 +124,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             buttonText: "Сыграть ещё раз",
             completion: {[weak self] in
                 guard let self = self else {return}
-                self.currentQuestionIndex = 0
+                self.presenter.resetQuestionIndex()
                 self.correctAnswers = 0
                 questionFactory?.requestNextQuestion()
             }
@@ -140,12 +138,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             
             let bestGame = statisticService.bestGame
             
-            statisticService.store(correct: correctAnswers, total: questionsAmount)
+            statisticService.store(correct: correctAnswers, total: presenter.questionsAmount)
             let accuracy = String(format: "%.2f", statisticService.totalAccuracy)
             resultMessage = """
                 Количество сыгранных квизов: \(statisticService.gamesCount)
-                Ваш результат: \(correctAnswers)\\\(questionsAmount)
-                Рекорд: \(bestGame.correct)\\\(questionsAmount) (\(bestGame.date.dateTimeString))
+                Ваш результат: \(correctAnswers)\\\(presenter.questionsAmount)
+                Рекорд: \(bestGame.correct)\\\(presenter.questionsAmount) (\(bestGame.date.dateTimeString))
                 Средняя точность: \(accuracy)%
             """
         }
@@ -176,7 +174,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
                                buttonText: "Попробовать еще раз") { [weak self] in
             guard let self = self else { return }
             
-            self.currentQuestionIndex = 0
+            self.presenter.resetQuestionIndex()
             self.correctAnswers = 0
             self.questionFactory?.loadData()
             activityIndicator.startAnimating()
