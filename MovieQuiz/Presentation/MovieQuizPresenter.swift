@@ -8,23 +8,24 @@
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
-    let questionsAmount: Int = 10
-    private var currentQuestionIndex: Int = 0
-    var currentQuestion: QuizQuestion?
-    weak var viewController: MovieQuizViewController?
-    var questionFactory: QuestionFactoryProtocol?
+    private var currentQuestion: QuizQuestion?
+    private weak var viewController: MovieQuizViewControllerProtocol?
+    private var questionFactory: QuestionFactoryProtocol?
     private let statisticService: StatisticService!
-    var correctAnswers = 0
+    
+    private var correctAnswers = 0
+    private let questionsAmount: Int = 10
+    private var currentQuestionIndex: Int = 0
 
     
-    init(viewController: MovieQuizViewController){
+    init(viewController: MovieQuizViewControllerProtocol){
         self.viewController = viewController
         
         statisticService = StatisticServiceImplementation()
         
         questionFactory = QuestionFactory(moviesLoader: MoviesLoader(), delegate: self)
         questionFactory?.loadData()
-        viewController.activityIndicator.startAnimating()
+        viewController.showLoadingIndicator()
     }
     
     // MARK: - QuestionFactoryDelegate
@@ -56,18 +57,29 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         let viewModel = convert(model: question)
         DispatchQueue.main.async { [weak self] in
             self?.viewController?.show(quiz: viewModel)
-//            self?.viewController?.activityIndicator.stopAnimating()
         }
     }
     
-    private func showNextQuestionOrResults() {
+    private func proceedWithAnswer(isCorrect: Bool) {
+        didAnswer(isCorrectAnswer: isCorrect)
+        
+        viewController?.highlightImageBorder(isCorrectAnswer: isCorrect)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self = self else {return}
+            self.proceedToNextQuestionOrResults()
+
+        }
+    }
+    
+    private func proceedToNextQuestionOrResults() {
         if isLastQuestion() {
             viewController?.showAlert()
             viewController?.chooseIsEnableButtons(true)
         } else {
             viewController?.chooseIsEnableButtons(true)
+            viewController?.showLoadingIndicator()
             switchToNextQuestion()
-            viewController?.activityIndicator.startAnimating()
             questionFactory?.requestNextQuestion()
         }
     }
@@ -99,24 +111,20 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         didAnswer(isYes: false)
     }
     
-    func didAnswer(isYes: Bool) {
+    private func didAnswer(isYes: Bool) {
         guard let currentQuestion = currentQuestion else {
             return
         }
         let givenAnswer = isYes
         
-        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        proceedWithAnswer(isCorrect: givenAnswer == currentQuestion.correctAnswer)
     }
     
-    func didAnswer(isCorrectAnswer: Bool) -> Bool {
+    private func didAnswer(isCorrectAnswer: Bool) {
         if isCorrectAnswer {
             correctAnswers += 1
-            return true
         }
-        return false
     }
-    
-    
     
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
@@ -125,7 +133,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     func resetGame() {
         currentQuestionIndex = 0
         correctAnswers = 0
-        questionFactory?.requestNextQuestion()
+        questionFactory?.loadData()
     }
     
     func switchToNextQuestion() {
