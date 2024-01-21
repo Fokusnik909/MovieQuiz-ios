@@ -8,9 +8,10 @@
 import Foundation
 import UIKit
 
-class AlertPresenter {
+final class AlertPresenter {
      func showAlert( model: AlertModel, from viewController: UIViewController){
         let alert = UIAlertController(title: model.title, message: model.message, preferredStyle: .alert)
+         alert.view.accessibilityIdentifier = "AlertID"
         
         let action = UIAlertAction(title: model.buttonText, style: .default) { _ in
             model.completion()
