@@ -9,6 +9,10 @@ import XCTest
 @testable import MovieQuiz
 
 final class MovieQuizViewControllerMock: MovieQuizViewControllerProtocol {
+    func show(model: MovieQuiz.AlertModel) {
+        
+    }
+    
     func showAlert() {
         
     }

@@ -12,6 +12,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     private weak var viewController: MovieQuizViewControllerProtocol?
     private var questionFactory: QuestionFactoryProtocol?
     private let statisticService: StatisticService!
+    private var alertPresenter: AlertPresenter?
     
     private var correctAnswers = 0
     private let questionsAmount: Int = 10
@@ -37,7 +38,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     func didFailToLoadData(with error: Error) {
         let message = error.localizedDescription
-        viewController?.showNetworkError(message: message)
+        showNetworkError(message: message)
     }
     
     func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -74,7 +75,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     private func proceedToNextQuestionOrResults() {
         if isLastQuestion() {
-            viewController?.showAlert()
+            showAlert()
             viewController?.chooseIsEnableButtons(true)
         } else {
             viewController?.chooseIsEnableButtons(true)
@@ -84,7 +85,7 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
-    func makeResultMessage() -> String {
+    private func makeResultMessage() -> String {
         var resultMessage = ""
         if let statisticService = statisticService {
             
@@ -126,17 +127,50 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         }
     }
     
-    func isLastQuestion() -> Bool {
+    private func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
     }
     
-    func resetGame() {
+    private func resetGame() {
         currentQuestionIndex = 0
         correctAnswers = 0
         questionFactory?.loadData()
     }
     
-    func switchToNextQuestion() {
+    private func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
+    
+    // MARK: - AlertPresenter
+    
+    func showAlert() {
+        guard let model = createAlertModel() else { return }
+        viewController?.show(model: model)
+    }
+    
+    private func createAlertModel() -> AlertModel? {
+        let title = "Раунд окончен!"
+        let message = makeResultMessage()
+        let buttonText = "Сыграть ещё раз"
+        let completion = { [weak self] in
+            guard let self = self else { return }
+            self.resetGame()
+        }
+        return AlertModel(title: title, message: message, buttonText: buttonText, completion: completion)
+    }
+    
+    private func showNetworkError(message: String)  {
+        viewController?.hideLoadingIndicator()
+        
+        let model = AlertModel(title: "Ошибка",
+                               message: message,
+                               buttonText: "Попробовать еще раз") { [weak self] in
+            guard let self = self else { return }
+            
+            viewController?.showLoadingIndicator()
+            self.resetGame()
+        }
+        viewController?.show(model: model)
+    }
+    
 }

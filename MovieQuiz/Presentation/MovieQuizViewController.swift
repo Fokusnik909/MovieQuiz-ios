@@ -41,22 +41,6 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         hideLoadingIndicator()
     }
     
-    func showAlert() {
-        let message = presenter.makeResultMessage()
-        
-        let alert = AlertModel(
-            title: "Раунд окончен!",
-            message: message,
-            buttonText: "Сыграть ещё раз",
-            completion: {[weak self] in
-                guard let self = self else { return }
-                self.presenter.resetGame()
-            }
-        )
-        alertPresenter.showAlert(model: alert, from: self)
-    }
-    
-    
     func highlightImageBorder(isCorrectAnswer: Bool) {
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
@@ -78,18 +62,7 @@ final class MovieQuizViewController: UIViewController, MovieQuizViewControllerPr
         noButton.isEnabled = enabled
     }
     
-    func showNetworkError(message: String) {
-        hideLoadingIndicator()
-        
-        let model = AlertModel(title: "Ошибка",
-                               message: message,
-                               buttonText: "Попробовать еще раз") { [weak self] in
-            guard let self = self else { return }
-            
-            showLoadingIndicator()
-            self.presenter.resetGame()
-        }
-        
+    func show(model: AlertModel) {
         alertPresenter.showAlert(model: model, from: self)
     }
     

@@ -20,13 +20,6 @@ final class MovieQuizUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    override func tearDownWithError() throws {
-        try super.tearDownWithError()
-        
-        app.terminate()
-        app = nil
-    }
-
     func testExample() throws {
         // UI tests must launch the application that they test.
         let app = XCUIApplication()
